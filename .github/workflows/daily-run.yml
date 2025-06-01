@@ -1,40 +1,34 @@
-name: Download and Upload PDF
+name: Download Makkal Kural E-Paper
 
 on:
-  workflow_dispatch:  # allows manual run
+  workflow_dispatch:  # manual trigger
+  schedule:
+    - cron: '0 4 * * *'  # every day at 4 AM UTC
 
 jobs:
   run-script:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Repo
-      uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v4
       with:
         python-version: '3.10'
 
     - name: Install dependencies
-      run: pip install -r requirements.txt
+      run: |
+        pip install requests PyPDF2
 
-    - name: Run Python script
+    - name: Run the script
       run: python run.py
 
-    - name: Show output files
-      run: ls -lh *.pdf || echo "No PDF generated"
-
-    - name: Commit PDF to repository
-      if: success()
+    - name: Commit PDF file
       run: |
-        git config user.name "github-actions"
-        git config user.email "github-actions@github.com"
-        PDF_NAME=$(ls MakkalKural_*.pdf | head -n 1 || echo "")
-        if [ -z "$PDF_NAME" ]; then
-          echo "❌ No PDF generated. Skipping commit."
-          exit 1
-        fi
-        git add "$PDF_NAME"
-        git commit -m "📰 Add daily PDF: $PDF_NAME"
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add *.pdf
+        git commit -m "Add today's Makkal Kural PDF" || echo "No changes to commit"
         git push
