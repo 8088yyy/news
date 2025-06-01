@@ -1,17 +1,17 @@
-name: Download Makkal Kural E-Paper
+name: Download Makkal Kural
 
 on:
-  workflow_dispatch:  # manual trigger
   schedule:
-    - cron: '0 4 * * *'  # every day at 4 AM UTC
+    - cron: '0 1 * * *'  # 6:30 AM IST daily (1:00 AM UTC)
+  workflow_dispatch:     # Allows manual run
 
 jobs:
-  run-script:
+  download:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+    - name: Checkout repo
+      uses: actions/checkout@v4
 
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -19,16 +19,29 @@ jobs:
         python-version: '3.10'
 
     - name: Install dependencies
+      run: pip install requests
+
+    - name: Download Makkal Kural PDF
       run: |
-        pip install requests PyPDF2
+        python <<EOF
+        import requests
+        from datetime import datetime
 
-    - name: Run the script
-      run: python run.py
+        today = datetime.now().strftime("%d-%m-%Y")
+        url = f"https://makkalkural.tv/newspaper/{today}.pdf"
+        response = requests.get(url)
+        if response.status_code == 200:
+            filename = f"MakkalKural_{today}.pdf"
+            with open(filename, "wb") as f:
+                f.write(response.content)
+        else:
+            raise Exception(f"Failed to download: {response.status_code}")
+        EOF
 
-    - name: Commit PDF file
+    - name: Commit and push PDF
       run: |
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
         git add *.pdf
         git commit -m "Add today's Makkal Kural PDF" || echo "No changes to commit"
-        git push
+        git push https://x-access-token:${{ secrets.GH_PAT }}@github.com/8088yyy/news.git HEAD:main
