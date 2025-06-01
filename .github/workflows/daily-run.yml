@@ -8,8 +8,9 @@ on:
 jobs:
   run-script:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
+      - name: Checkout repo
         uses: actions/checkout@v3
 
       - name: Set up Python
@@ -22,4 +23,12 @@ jobs:
           pip install requests PyPDF2 pathlib
 
       - name: Run Python script
-        run: python .run.py
+        run: python run.py
+
+      - name: Commit and push generated files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add news.pdf
+          git commit -m "Add generated news PDF" || echo "No changes to commit"
+          git push
