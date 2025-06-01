@@ -1,4 +1,4 @@
-name: Run script to update Makkal Kural PDF daily
+name: Run script to update Makkal Kural PDF daily.
 
 on:
   schedule:
